@@ -25,10 +25,14 @@ class RichTextEditor extends Component {
         return 'not-handled';
     }
 
-    
+    _onBoldClick() {
+        this.onChange(RichUtils.toggleInlineStyle(this.state.editorState, 'BOLD'));
+    }
+
     render() {
         return (
             <div className="editor-window">
+                <button onClick={this._onBoldClick.bind(this)}>Bold</button>
                 <Editor editorState={this.state.editorState}
                     onChange={this.onChange}
                     handleKeyCommand={this.handleKeyCommand} />
