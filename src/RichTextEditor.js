@@ -1,19 +1,36 @@
 import React, { Component } from 'react';
-import { EditorState, RichUtils } from 'draft-js';
+import { EditorState, RichUtils, convertToRaw, convertFromRaw } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
 import createEmojiPlugin from 'draft-js-emoji-plugin';
-import 'draft-js-emoji-plugin/lib/plugin.css'
+import 'draft-js-emoji-plugin/lib/plugin.css';
 
+/* 
+    This is used to include emoji plugin in the editor.
+    We can invoke the emoji suggestions using : keyword.
+*/
 const emojiPlugin = createEmojiPlugin();
-
 const { EmojiSuggestions } = emojiPlugin;
 
 class RichTextEditor extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { editorState: EditorState.createEmpty() };
-        this.onChange = (editorState) => this.setState({ editorState });
+        this.state = {};
+
+        /* 
+            Below lines are used to retrieve data from the local storage.
+            This can be useful in cases we accidently reload the page
+            while we are still typing.
+        */
+        const content = window.localStorage.getItem('content');
+
+        if (content) {
+            this.state.editorState = EditorState.createWithContent(convertFromRaw(JSON.parse(content)));
+        } else {
+            this.state.editorState = EditorState.createEmpty();
+        }
+
+        this.onChange = this.onChange.bind(this);
         this.handleKeyCommand = this.handleKeyCommand.bind(this);
     }
 
@@ -30,6 +47,18 @@ class RichTextEditor extends Component {
             return 'handled';
         }
         return 'not-handled';
+    }
+
+    onChange(editorState) {
+        const contentState = editorState.getCurrentContent();
+        this.saveContent(contentState);
+        this.setState({
+            editorState,
+        });
+    }
+
+    saveContent = (content) => {
+        window.localStorage.setItem('content', JSON.stringify(convertToRaw(content)));
     }
 
     _onBoldClick() {
